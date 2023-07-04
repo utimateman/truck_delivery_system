@@ -91,8 +91,8 @@ class TruckDeliverySystem:
         
         # Get Receiver Location
         receiver_location = "Receiver A"
-        receiver_lat = 12.5678
-        receiver_lng = 63.2341
+        receiver_lat = 45.5678
+        receiver_lng = 123.2341
 
         # Get Route Values
         # query from receiver vs warehouse table
@@ -125,9 +125,9 @@ class TruckDeliverySystem:
         driver_id = 1
         for truck in truck_list:
             temp_ttp = TruckTransportationPlan(
-                truck.getTruckID,
-                truck.getTruckType,
-                truck.getTruckLocation,
+                truck.getTruckID(),
+                truck.getTruckType(),
+                truck.getTruckLocation(),
                 driver_id,
                 self.receiver_id,
                 receiver_location,

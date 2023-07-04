@@ -43,8 +43,6 @@ class TruckTransportationPlan:
     def getTruckDepartureTimeInterval(self):
         return self.truck_departure_time_interval
     
-    def getEstimateArrivalTime(self):
-        return self.estimate_arrival_time
     
     def getWarehouseApprovalManagerId(self):
         return self.warehouse_approval_manager_id
@@ -67,20 +65,20 @@ class TruckTransportationPlan:
         print("Warehouse Approval Manager ID:", self.getWarehouseApprovalManagerId())
         print("Receiver Approval Manager ID:", self.getReceiverApprovalManagerId())
 
-    def to_json(self):
+    def jsonVersion(self):
         data = {
-            "TruckID": self.getTruckId(),
+            "TruckID": self.truck_id,
             "TruckType": self.truck_type,
             "TruckLocation": self.truck_location,
-            "DriverID": self.getDriverId(),
-            "ReceiverID": self.getReceiverId(),
-            "ReceiverLocation": self.getReceiverLocation(),
-            "ReceiverLatitude": self.getReceiverLat(),
-            "ReceiverLongitude": self.getReceiverLng(),
-            "TruckDeliveryTimeInterval": self.getTruckDeliveryTimeInterval(),
-            "RouteID": self.getRouteId(),
-            "TruckDepartureTimeInterval": self.getTruckDepartureTimeInterval(),
-            "WarehouseApprovalManagerID": self.getWarehouseApprovalManagerId(),
-            "ReceiverApprovalManagerID": self.getReceiverApprovalManagerId()
+            "DriverID": self.driver_id,
+            "ReceiverID": self.receiver_id,
+            "ReceiverLocation": self.receiver_location,
+            "ReceiverLatitude": self.receiver_lat,
+            "ReceiverLongitude": self.receiver_lng,
+            "TruckDeliveryTimeInterval": self.truck_delivery_time_interval,
+            "RouteID": self.route_id,
+            "TruckDepartureTimeInterval": self.truck_departure_time_interval,
+            "WarehouseApprovalManagerID": self.warehouse_approval_manager_id,
+            "ReceiverApprovalManagerID": self.receiver_approval_manager_id
         }
         return json.dumps(data)
