@@ -1,11 +1,12 @@
 import json
 
 class TruckTransportationPlan:
-    def __init__(self, truck_id, truck_type, truck_location, driver_id, receiver_id, receiver_location, receiver_lat, receiver_lng, truck_delivery_time_interval, route_id, truck_departure_time_interval, warehouse_approval_manager_id, receiver_approval_manager_id):
+    def __init__(self, truck_id, truck_type, truck_location, driver_id, warehouse_id, receiver_id, receiver_location, receiver_lat, receiver_lng, truck_delivery_time_interval, route_id, truck_departure_time_interval, warehouse_approval_manager_id, receiver_approval_manager_id):
         self.truck_id = truck_id
         self.truck_type = truck_type
         self.truck_location = truck_location
         self.driver_id = driver_id
+        self.warehouse_id = warehouse_id
         self.receiver_id = receiver_id
         self.receiver_location = receiver_location
         self.receiver_lat = receiver_lat
@@ -43,6 +44,8 @@ class TruckTransportationPlan:
     def getTruckDepartureTimeInterval(self):
         return self.truck_departure_time_interval
     
+    def getWarehouseId(self):
+        return self.warehouse_id
     
     def getWarehouseApprovalManagerId(self):
         return self.warehouse_approval_manager_id
@@ -55,6 +58,7 @@ class TruckTransportationPlan:
         print("Truck Type:", self.truck_type)
         print("Truck Location:", self.truck_location)
         print("Driver ID:", self.getDriverId())
+        print("Warehouse ID:", self.getWarehouseId())
         print("Receiver ID:", self.getReceiverId())
         print("Receiver Location:", self.getReceiverLocation())
         print("Receiver Latitude:", self.getReceiverLat())
@@ -71,6 +75,7 @@ class TruckTransportationPlan:
             "TruckType": self.truck_type,
             "TruckLocation": self.truck_location,
             "DriverID": self.driver_id,
+            "WarehouseID": self.warehouse_id,
             "ReceiverID": self.receiver_id,
             "ReceiverLocation": self.receiver_location,
             "ReceiverLatitude": self.receiver_lat,

@@ -129,6 +129,7 @@ class TruckDeliverySystem:
                 truck.getTruckType(),
                 truck.getTruckLocation(),
                 driver_id,
+                self.warehouse_id,
                 self.receiver_id,
                 receiver_location,
                 receiver_lat,

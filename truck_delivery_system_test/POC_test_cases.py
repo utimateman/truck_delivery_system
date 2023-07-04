@@ -45,6 +45,7 @@ class MyPOCTest(unittest.TestCase):
         
         # test variables
         receiver_id = 1
+        warehouse_id = 2
         truck_order_list = [["Box Truck", 3, "WHA1S1"], ["Flatbed Truck",3,"WHA1S2"]]
 
         truck_count = 0
@@ -57,13 +58,13 @@ class MyPOCTest(unittest.TestCase):
         receiver_approval_manager_id = 12345
         warehouse_approval_manager_id = 23456
         # create WarehouseShippingRequest
-        wh_ship_req= WarehouseShippingRequest(receiver_id,1,2, delivery_time_interval, [TruckOrder(truck_order_list[0][0],truck_order_list[0][1],truck_order_list[0][2]), TruckOrder(truck_order_list[1][0],truck_order_list[1][1],truck_order_list[1][2])], ["Apple", "Banana"], receiver_approval_manager_id)
+        wh_ship_req= WarehouseShippingRequest(1, receiver_id, warehouse_id, delivery_time_interval, [TruckOrder(truck_order_list[0][0],truck_order_list[0][1],truck_order_list[0][2]), TruckOrder(truck_order_list[1][0],truck_order_list[1][1],truck_order_list[1][2])], ["Apple", "Banana"], receiver_approval_manager_id)
         
         # create ReceiverShippingRequest
-        rc_ship_req = ReceiverShippingRequest(receiver_id,1, 2, [TruckOrder(truck_order_list[0][0],truck_order_list[0][1],truck_order_list[0][2]), TruckOrder(truck_order_list[1][0],truck_order_list[1][1],truck_order_list[1][2])], ["Apple", "Banana"], warehouse_approval_manager_id)
+        rc_ship_req = ReceiverShippingRequest(1, receiver_id, warehouse_id, [TruckOrder(truck_order_list[0][0],truck_order_list[0][1],truck_order_list[0][2]), TruckOrder(truck_order_list[1][0],truck_order_list[1][1],truck_order_list[1][2])], ["Apple", "Banana"], warehouse_approval_manager_id)
         
         # create TruckDeliverySystem
-        tds = TruckDeliverySystem(2, 1, travel_time , [TruckOrder(truck_order_list[0][0],truck_order_list[0][1],truck_order_list[0][2]), TruckOrder(truck_order_list[1][0],truck_order_list[1][1],truck_order_list[1][2])], wh_ship_req, rc_ship_req)
+        tds = TruckDeliverySystem(warehouse_id, receiver_id, travel_time , [TruckOrder(truck_order_list[0][0],truck_order_list[0][1],truck_order_list[0][2]), TruckOrder(truck_order_list[1][0],truck_order_list[1][1],truck_order_list[1][2])], wh_ship_req, rc_ship_req)
         truck_plan = tds.generateDeliveryPlan()
 
         # formatting output
@@ -78,6 +79,7 @@ class MyPOCTest(unittest.TestCase):
         # truck.getTruckType(),
         # truck.getTruckLocation(),
         # driver_id,
+        # self.warehouse_id,
         # self.receiver_id,
         # receiver_location,
         # receiver_lat,
@@ -123,6 +125,15 @@ class MyPOCTest(unittest.TestCase):
         # driver ID == int
         driver_id_is_int = df['DriverID'].dtype in ['int', 'int64']
         self.assertEqual(driver_id_is_int, True)
+
+        # warehouse_id == not null
+        warehouse_id_has_null = df['WarehouseID'].isnull().any()
+        self.assertEqual(warehouse_id_has_null, False)
+        
+        # warehouse_id == same 
+        all_warehouse_id_value_same = df['WarehouseID'].eq(df['WarehouseID'].iloc[0]).all()
+        self.assertEqual(all_warehouse_id_value_same, True)
+        self.assertEqual(df['WarehouseID'].iloc[0], warehouse_id)
 
         # receiver_id == not null
         receiver_id_has_null = df['ReceiverID'].isnull().any()
