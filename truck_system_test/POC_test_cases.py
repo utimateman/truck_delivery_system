@@ -16,6 +16,7 @@ from TruckDeliverySystem import TruckDeliverySystem
 
 
 class MyPOCTest(unittest.TestCase):
+
     def subtract_minutes_from_timestamp(self, timestamp, minutes):
         dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
         new_dt = dt - timedelta(minutes=minutes)
@@ -57,7 +58,7 @@ class MyPOCTest(unittest.TestCase):
         travel_time = 30
         receiver_approval_manager_id = 12345
         warehouse_approval_manager_id = 23456
-        
+
         # create WarehouseShippingRequest
         wh_ship_req= WarehouseShippingRequest(1, receiver_id, warehouse_id, delivery_time_interval, [TruckOrder(truck_order_list[0][0],truck_order_list[0][1],truck_order_list[0][2]), TruckOrder(truck_order_list[1][0],truck_order_list[1][1],truck_order_list[1][2])], ["Apple", "Banana"], receiver_approval_manager_id)
         
@@ -210,7 +211,12 @@ class MyPOCTest(unittest.TestCase):
         self.assertEqual(receiver_approval_manager_id_value_all_same, True)
         self.assertEqual(df['ReceiverApprovalManagerID'].iloc[0], receiver_approval_manager_id)
 
+    def test_string(self):
+        self.assertEqual("Hello", "Hello")
 
+    def test_processing(self):
+        self.test_string()
+        self.assertEqual("hello","hello")
 
 if __name__ == '__main__':
     unittest.main()

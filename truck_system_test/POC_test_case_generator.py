@@ -296,26 +296,74 @@ class TestCaseGenerator:
         # )
 
         # ---- [ inputs summary ] ----
-        # query out: warehouse_id | warehouse_approval_manager_id | receiver_approval_manager_id | receiver_id | travel_time
+        # query out: warehouse_id | warehouse_manager_id | receiver_manager_id | receiver_id | travel_time
         # defined: delivery_time_interval | goods_list 
         # query + define: truck_order
 
         # ---- [ outputs summary ] ----
-        # truck_id | truck_type | truck_warehouse_location | driver_id |
-        # truck.getTruckID(),
-                #         truck.getTruckType(),
-                # truck.getTruckLocation(),
-                # driver_id,
-                # self.warehouse_id,
-                # self.receiver_id,
-                # receiver_location,
-                # receiver_lat,
-                # receiver_lng,
-                # truck_delivery_time_interval,
-                # route_id,
-                # [depature_time_lower_bound, depature_time_upper_bound],
-                # self.shipping_request_for_receiver.getWarehouseManagerId(),
-                # self.shipping_request_for_warehouse.getReceiverManagerId()
+        # List of [
+            # truck_id - is all positive int 
+            # *** truck_queue - matches the sequence
+            # *** truck_type - in total is correct e.g., 3 Box Truck, 2 Pickups
+            # truck_warehouse_location - in total is correct 
+            # driver_id - is all positive int
+            # warehouse_id - matches input
+            # receiver_id - matches input
+            # receiver_location - matches receiver_id
+            # receiver_lat | receiver_lng - matches receiver_id
+            # truck_delivery_time_interval - matches input
+            # route_id - matches route_id for warehouse-receiver
+            # *** departure_time_interval - matches the calculation
+            # warehouse_approval_manager_id | receiver_approval_manager_id - all positive int 
+        # ]
+
+        # ------- [ constraint ] -------
+        # c1: reusing truck will not be calculated in a delivery plan
+        # c2: every warehouses and receiver has an inbound/outbound processing time per truck (e.g., 3 mins/truck)
+        #     which is expected to be included in  DEPARTURE INTERVAL calculation
+        # c3: different parking location in the same warehouse has different priority for QUEUING SYSTEM
+        # c4: different types of truck has different priority for QUEUING SYSTEM
+        # c5: different departure time has different priority for QUEUING SYSTEM
+        # c6: departure time for QUEUING SYSTEM is defining as departure time (lower bound) + (outbound_truck_processing_time * number of truck)
+        # c6: priority of queuing factors is described as follows: departure time > location > types
+
+        # ------- [ test cases ] -------
+
+        # base case: happy path -> PASS: everything correct
+
+        # invalid input
+        # t1: invalid warehouse_id
+        # t2: invalid warehouse_manager_id
+        # t3: invalid receiver_manager_id
+        # t4: invalid receiver_id
+        # t5: invalid travel_time
+        # t6: invalid delivery_time_interval - format, null, A2 < A1
+        # t7: invalid goods_list
+        # t8: invalid truck_order
+        # t9: invalid WarehouseShippingRequest
+        # t10: invalid ReceiverShippingRequest
+
+        # output validation
+        # t1: valid truck_id format
+        # t2: valid truck_queue format
+        # t3: valid truck_type format
+        # t4: valid truck_warehouse_location format
+        # t5: valid driver_id format
+        # t6: valid warehouse_id format
+        # t7: valid receiver_id format
+        # t8: valid receiver_location format
+        # t9: valid receiver_lat format
+        # t10: valid receiver_lng format
+        # t11: valid truck_delivery_time_interval format
+        # t12: valid route_id format
+        # t13: valid departure_time_interval format
+        # t14: valid warehouse_approval_manager_id format
+        # t15: valid receiver_approval_manager_id format
+
+        # logical errors & handling
+        # all cases combinations
+        
+
         pass
 
 warehouse_num =  5
