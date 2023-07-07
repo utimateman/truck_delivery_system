@@ -4,8 +4,8 @@ import sys
 import pandas as pd
 import json
 
-sys.path.insert(1, '/Users/krai/truck_delivery_system/truck_delivery_system/Components')
-sys.path.insert(2, '/Users/krai/truck_delivery_system/truck_delivery_system')
+sys.path.insert(1, '/Users/krai/truck_delivery_system/truck_system/Components')
+sys.path.insert(2, '/Users/krai/truck_delivery_system/truck_system')
 
 from Truck import Truck
 from TruckOrder import TruckOrder
@@ -57,6 +57,7 @@ class MyPOCTest(unittest.TestCase):
         travel_time = 30
         receiver_approval_manager_id = 12345
         warehouse_approval_manager_id = 23456
+        
         # create WarehouseShippingRequest
         wh_ship_req= WarehouseShippingRequest(1, receiver_id, warehouse_id, delivery_time_interval, [TruckOrder(truck_order_list[0][0],truck_order_list[0][1],truck_order_list[0][2]), TruckOrder(truck_order_list[1][0],truck_order_list[1][1],truck_order_list[1][2])], ["Apple", "Banana"], receiver_approval_manager_id)
         

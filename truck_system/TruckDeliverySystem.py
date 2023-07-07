@@ -1,6 +1,6 @@
 
 import sys
-sys.path.insert(1, '/Users/krai/truck_delivery_system/truck_delivery_system/Components')
+sys.path.insert(1, '/Users/krai/truck_delivery_system/truck_system/Components')
 
 from Truck import Truck
 from TruckOrder import TruckOrder
