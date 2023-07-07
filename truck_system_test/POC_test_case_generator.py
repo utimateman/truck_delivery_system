@@ -6,13 +6,13 @@ class TestCaseGenerator:
     def __init__(self, warehouse_num, warehouse_parking_range, truck_num_range, warehouse_truck_processing_time, receiver_num, receiver_truck_processing_time):
         # Inputs for Generator
 
-        # number of warehouse
-        # range of number of parking in warehouse
-        # range of truck in warehouse
-        # range of inbound/outbound processing time
+        # number of warehouse: int
+        # range of number of parking in warehouse: [int:int]
+        # range of truck in warehouse: [int:int]
+        # range of inbound/outbound processing time: [int:int]
 
-        # number of receiver
-        # range of inbound/outbound processing time
+        # number of receiver: int
+        # range of inbound/outbound processing time: [int:int]
 
         self.warehouse_num = warehouse_num
         self.warehouse_parking_range = warehouse_parking_range
@@ -89,7 +89,6 @@ class TestCaseGenerator:
 
         # employee
         EMPLOYEE_ID = 1
-        employee_list = []
         employee_id_list = []
         employee_name_list = []
         employee_position_list = []
@@ -135,11 +134,20 @@ class TestCaseGenerator:
                 truck_warehouse_location_list.append(WAREHOUSE_ID)
                 truck_parking_location_list.append(random.randint(1,warehouse_parklot_num))
                 TRUCK_ID += 1
+
+                # spawn driver
+                employee_id_list.append(EMPLOYEE_ID)
+                EMPLOYEE_ID += 1
+                employee_name_list.append(names.get_full_name())
+                employee_position_list.append('driver')
+                employee_warehouse_id_list.append(WAREHOUSE_ID)
+                employee_receiver_id_list.append(None)
+
                 
 
             # spawn truck processing time for warehouse
-            warehouse_inbound_processing_time.append(self.warehouse_truck_processing_time[0])
-            warehouse_outbound_processing_time.append(self.warehouse_truck_processing_time[1])
+            warehouse_inbound_processing_time.append(random.randint(1, self.warehouse_truck_processing_time[0]))
+            warehouse_outbound_processing_time.append(random.randint(1, self.warehouse_truck_processing_time[1]))
 
             # spawn employee
             employee_id_list.append(EMPLOYEE_ID)
@@ -154,8 +162,8 @@ class TestCaseGenerator:
             # spawn receiver_id
             RECEIVER_ID = i + 1
             receiver_id_list.append(RECEIVER_ID)
-            receiver_inbound_processing_time.append(self.receiver_truck_processing_time[0])
-            receiver_outbound_processing_time.append(self.receiver_truck_processing_time[1])
+            receiver_inbound_processing_time.append(random.randint(1, self.receiver_truck_processing_time[0]))
+            receiver_outbound_processing_time.append(random.randint(1, self.receiver_truck_processing_time[1]))
 
             # spawn location
             receiver_location_id_list.append(LOCATION_ID)
@@ -253,7 +261,62 @@ class TestCaseGenerator:
         print(route_df)
 
 
+    def generatingTestCases(self):
 
+        # ---- [ create WarehouseShippingRequest ] ----
+        # wh_ship_req = WarehouseShippingRequest(
+            # warehouse_shipping_request_id, 
+            # receiver_id, 
+            # warehouse_id, 
+            # delivery_time_interval, 
+            # truck_order: list[TruckOrder],
+            # goods_list: list[string], 
+            # receiver_approval_manager_id
+        # )
+
+        
+        # ---- [ create ReceiverShippingRequest ] ----
+        # rc_ship_req = ReceiverShippingRequest(
+            # receiver_shipping_request_id, 
+            # receiver_id, 
+            # warehouse_id, 
+            # truck_order: list[TruckOrder], 
+            # goods_list: list[string], 
+            # warehouse_approval_manager_id
+        # )
+        
+        # ---- [ create TruckDeliverySystem ] ----
+        # tds = TruckDeliverySystem(
+            # warehouse_id, 
+            # receiver_id, 
+            # travel_time , 
+            # truck_order: list[TruckOrder],
+            # wh_ship_req, 
+            # rc_ship_req
+        # )
+
+        # ---- [ inputs summary ] ----
+        # query out: warehouse_id | warehouse_approval_manager_id | receiver_approval_manager_id | receiver_id | travel_time
+        # defined: delivery_time_interval | goods_list 
+        # query + define: truck_order
+
+        # ---- [ outputs summary ] ----
+        # truck_id | truck_type | truck_warehouse_location | driver_id |
+        # truck.getTruckID(),
+                #         truck.getTruckType(),
+                # truck.getTruckLocation(),
+                # driver_id,
+                # self.warehouse_id,
+                # self.receiver_id,
+                # receiver_location,
+                # receiver_lat,
+                # receiver_lng,
+                # truck_delivery_time_interval,
+                # route_id,
+                # [depature_time_lower_bound, depature_time_upper_bound],
+                # self.shipping_request_for_receiver.getWarehouseManagerId(),
+                # self.shipping_request_for_warehouse.getReceiverManagerId()
+        pass
 
 warehouse_num =  5
 warehouse_parking_range = [2,5]
