@@ -325,13 +325,15 @@ class TestCaseGenerator:
         # c4: different types of truck has different priority for QUEUING SYSTEM
         # c5: different departure time has different priority for QUEUING SYSTEM
         # c6: departure time for QUEUING SYSTEM is defining as departure time (lower bound) + (outbound_truck_processing_time * number of truck)
-        # c6: priority of queuing factors is described as follows: departure time > location > types
+        # c7: priority of queuing factors is described as follows: departure time > location > types; 
+        # c8: if departure time same, then departure time (upper bound)
+        # c9: if departure time (upper bound) same, then transaction sequence (timestamp)
 
         # ------- [ test cases ] -------
 
-        # base case: happy path -> PASS: everything correct
-
+        # ---------------------------------------------
         # invalid input
+        # ---------------------------------------------
         # t1: invalid warehouse_id
         # t2: invalid warehouse_manager_id
         # t3: invalid receiver_manager_id
@@ -343,7 +345,9 @@ class TestCaseGenerator:
         # t9: invalid WarehouseShippingRequest
         # t10: invalid ReceiverShippingRequest
 
+        # ---------------------------------------------
         # output validation
+        # ---------------------------------------------
         # t1: valid truck_id format
         # t2: valid truck_queue format
         # t3: valid truck_type format
@@ -360,8 +364,109 @@ class TestCaseGenerator:
         # t14: valid warehouse_approval_manager_id format
         # t15: valid receiver_approval_manager_id format
 
+        # ---------------------------------------------
         # logical errors & handling
-        # all cases combinations
+        # ---------------------------------------------
+        # t1: base case - happy path, everything correct -> PASS
+        
+        # Departure Time 
+        # t2: edge case - tightest departure time possible -> PASS
+        # t3: exact overlapped case - truck exceed -> FAIL
+        # t4: exact overlapped case - truck NOT exceed -> PASS
+        # t5: intersect overlapped case - truck exceed -> FAIL
+        # t6: intersect overlapped case - truck NOT exceed -> PASS
+        # t7: subset overlapped case - truck exceed -> FAIL
+        # t8: subset overlapped case - truck NOT exceed -> PASS
+        # t9: multiple intersect overlapped case - truck exceed -> FAIL
+        # t10: multiple intersect overlapped case - truck NOT exceed -> PASS
+        
+        # Truck Queuing
+        # t11: test priority (2 receiver depart same time) - order by departure(upper bound), same departure time, same location, same types -> PASS
+        # t12: test priority (5 receiver depart same time) - order by departure(upper bound) timestamp, same departure time, same location, same types -> PASS
+        # t13: test priority (2 receiver depart same time) - order by departure(same) - order by transaction, same departure time, same location, same types -> PASS
+        # t14: test priority (5 receiver depart same time) - order by departure(same) - order by transaction timestamp, same departure time, same location, same types -> PASS
+        
+        # - different types
+        # t15: test types priority (1 types) - order by departure(upper bound), same departure time, same location, different types -> PASS
+        # t16: test types priority (2 types) - same departure time, same location, different types -> PASS
+        # t17: test types priority (3 types) - same departure time, same location, different types -> PASS
+        # t18: test types priority (4 types) - same departure time, same location, different types -> PASS
+        # t19: test types priority (2 receiver depart same time, 2 types) - same departure time, same location, different types - (A), (B) -> PASS
+        # t20: test types priority (2 receiver depart same time, 2 types) - same departure time, same location, different types - (B), (A) -> PASS
+        # t21: test types priority (2 receiver depart same time, 2 types) - same departure time, same location, different types - (A,B), (A) -> PASS
+        # t22: test types priority (2 receiver depart same time, 2 types) - same departure time, same location, different types - (B), (A,B) -> PASS
+        # t23: test types priority (2 receiver depart same time, 2 types) - same departure time, same location, different types - (B,A), (A,B) -> PASS
+        # t24: test types priority (2 receiver depart same time, 3 types) - same departure time, same location, different types - (B, C), (A) -> PASS
+        # t25: test types priority (2 receiver depart same time, 3 types) - same departure time, same location, different types - (B), (A, C) -> PASS
+        # t26: test types priority (2 receiver depart same time, 3 types) - same departure time, same location, different types - (C), (A, B) -> PASS
+        # t27: test types priority (2 receiver depart same time, 3 types) - same departure time, same location, different types - (B,C), (A,B) -> PASS
+        # t28: test types priority (2 receiver depart same time, 3 types) - same departure time, same location, different types - (A,C), (A,B) -> PASS
+        # t29: test types priority (2 receiver depart same time, 3 types) - same departure time, same location, different types - (B,C), (A,C) -> PASS
+        # t30: test types priority (2 receiver depart same time, 3 types) - same departure time, same location, different types - (B,A,C), (C,B,A) -> PASS
+        # t31: test types priority (3 receiver depart same time, 3 types) - same departure time, same location, different types - (A), (B), (C) -> PASS
+        # t32: test types priority (3 receiver depart same time, 3 types) - same departure time, same location, different types - (A,B), (B,C), (A,C) -> PASS
+        # t33: test types priority (3 receiver depart same time, 3 types) - same departure time, same location, different types - (C,B,A), (B,A,C), (A,B,C) -> PASS
+        # t34: test types priority (4 receiver depart same time, 4 types) - same departure time, same location, different types - (A, B), (B, C), (C, D), (D, A) -> PASS
+        # t35: test types priority (4 receiver depart same time, 4 types) - same departure time, same location, different types - (A, B, C), (B, C, D), (C, D, A), (D, A, B) -> PASS
+        # t36: test types priority (4 receiver depart same time, 4 types) - same departure time, same location, different types - (A, B, C, D), (B, C, D, A), (C, D, A, B), (D, A, B, C) -> PASS
+        # t37: test types priority (5 receiver depart same time, 3 types) - same departure time, same location, different types - (A, B, C), (A, B, C),  (A, B, C),  (A, B, C),  (A, B, C) -> PASS
+
+        # - different location
+        # t38: test location priority (2 receiver depart same time, 2 types) - same departure time, different location, same types - (A), (B) -> PASS
+        # t39: test location priority (2 receiver depart same time, 2 types) - same departure time, different location, same types - (B), (A) -> PASS
+        # t40: test location priority (2 receiver depart same time, 2 types) - same departure time, different location, same types - (A,B), (A) -> PASS
+        # t41: test location priority (2 receiver depart same time, 2 types) - same departure time, different location, same types - (B), (A,B) -> PASS
+        # t42: test location priority (2 receiver depart same time, 2 types) - same departure time, different location, same types - (B,A), (A,B) -> PASS
+        # t43: test location priority (2 receiver depart same time, 3 types) - same departure time, different location, same types - (B, C), (A) -> PASS
+        # t42: test location priority (2 receiver depart same time, 3 types) - same departure time, different location, same types - (B), (A, C) -> PASS
+        # t44: test location priority (2 receiver depart same time, 3 types) - same departure time, different location, same types - (C), (A, B) -> PASS
+        # t45: test location priority (2 receiver depart same time, 3 types) - same departure time, different location, same types - (B,C), (A,B) -> PASS
+        # t46: test location priority (2 receiver depart same time, 3 types) - same departure time, different location, same types - (A,C), (A,B) -> PASS
+        # t47: test location priority (2 receiver depart same time, 3 types) - same departure time, different location, same types - (B,C), (A,C) -> PASS
+        # t48: test location priority (2 receiver depart same time, 3 types) - same departure time, different location, same types - (B,A,C), (C,B,A) -> PASS
+        # t49: test location priority (3 receiver depart same time, 3 types) - same departure time, different location, same types - (A), (B), (C) -> PASS
+        # t50: test location priority (3 receiver depart same time, 3 types) - same departure time, different location, same types - (A,B), (B,C), (A,C) -> PASS
+        # t51: test location priority (3 receiver depart same time, 3 types) - same departure time, different location, same types - (C,B,A), (B,A,C), (A,B,C) -> PASS
+        # t52: test location priority (4 receiver depart same time, 4 types) - same departure time, different location, same types - (A, B), (B, C), (C, D), (D, A) -> PASS
+        # t53: test location priority (4 receiver depart same time, 4 types) - same departure time, different location, same types - (A, B, C), (B, C, D), (C, D, A), (D, A, B) -> PASS
+        # t54: test location priority (4 receiver depart same time, 4 types) - same departure time, different location, same types - (A, B, C, D), (B, C, D, A), (C, D, A, B), (D, A, B, C) -> PASS
+        # t55: test location priority (5 receiver depart same time, 3 types) - same departure time, different location, same types - (A, B, C), (A, B, C),  (A, B, C),  (A, B, C),  (A, B, C) -> PASS
+        
+        # - different departure time
+        # t56: test departure time priority (2 receiver depart same time, 2 types) - different departure time, same location, same types - (A), (B) -> PASS
+        # t57: test departure time priority (2 receiver depart same time, 2 types) - different departure time, same location, same types - (B), (A) -> PASS
+        # t58: test departure time priority (2 receiver depart same time, 2 types) - different departure time, same location, same types - (A,B), (A) -> PASS
+        # t59: test departure time priority (2 receiver depart same time, 2 types) - different departure time, same location, same types - (B), (A,B) -> PASS
+        # t60: test departure time priority (2 receiver depart same time, 2 types) - different departure time, same location, same types - (B,A), (A,B) -> PASS
+        # t61: test departure time priority (2 receiver depart same time, 3 types) - different departure time, same location, same types - (B, C), (A) -> PASS
+        # t62: test departure time priority (2 receiver depart same time, 3 types) - different departure time, same location, same types - (B), (A, C) -> PASS
+        # t63: test departure time priority (2 receiver depart same time, 3 types) - different departure time, same location, same types - (C), (A, B) -> PASS
+        # t64: test departure time priority (2 receiver depart same time, 3 types) - different departure time, same location, same types - (B,C), (A,B) -> PASS
+        # t65: test departure time priority (2 receiver depart same time, 3 types) - different departure time, same location, same types - (A,C), (A,B) -> PASS
+        # t66: test departure time priority (2 receiver depart same time, 3 types) - different departure time, same location, same types - (B,C), (A,C) -> PASS
+        # t67: test departure time priority (2 receiver depart same time, 3 types) - different departure time, same location, same types - (B,A,C), (C,B,A) -> PASS
+        # t68: test departure time priority (3 receiver depart same time, 3 types) - different departure time, same location, same types - (A), (B), (C) -> PASS
+        # t69: test departure time priority (3 receiver depart same time, 3 types) - different departure time, same location, same types - (A,B), (B,C), (A,C) -> PASS
+        # t70: test departure time priority (3 receiver depart same time, 3 types) - different departure time, same location, same types - (C,B,A), (B,A,C), (A,B,C) -> PASS
+        # t71: test departure time priority (4 receiver depart same time, 4 types) - different departure time, same location, same types - (A, B), (B, C), (C, D), (D, A) -> PASS
+        # t72: test departure time priority (4 receiver depart same time, 4 types) - different departure time, same location, same types - (A, B, C), (B, C, D), (C, D, A), (D, A, B) -> PASS
+        # t73: test departure time priority (4 receiver depart same time, 4 types) - different departure time, same location, same types - (A, B, C, D), (B, C, D, A), (C, D, A, B), (D, A, B, C) -> PASS
+        # t74: test departure time priority (5 receiver depart same time, 3 types) - different departure time, same location, same types - (A, B, C), (A, B, C),  (A, B, C),  (A, B, C),  (A, B, C) -> PASS
+
+        # - priority combination 
+        # t75: test location and types priority - same departure time, different location, different types - A:(A,B), B(A,B,C) -> PASS
+        # t76: test departure time and types priority - different departure time, different location, different types - A:(A,B), B(A,B,C) -> PASS
+        # t77: test departure time and types location - different departure time, different location, same types - A:(A,B), B(A,B,C) -> PASS
+        # t78: probably normal case... all different - different departure time, different location, different types -> PASS
+        
+
+        # ---------------------------------------------
+        # random (smoking?) test
+        # ---------------------------------------------
+        # t79: normal random cases x [ Number of expected transaction per Day] 
+        # t80: (Maybe Subset) all combinations of warehouse-receiver
+        # t81: (NO) all combinations of different queuing priority; SUM(m=0, n-1)[(nCm)(n-m)r] where n = no. of truck, r = no. of receiver
+
         
 
         pass
