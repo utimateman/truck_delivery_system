@@ -3,7 +3,7 @@ import names
 import pandas as pd
 
 class TestCaseGenerator:
-    def __init__(self, warehouse_num, warehouse_parking_range, truck_num_range, warehouse_truck_processing_time, receiver_num, receiver_truck_processing_time):
+    def __init__(self, warehouse_num, warehouse_parking_range, truck_num_range, warehouse_truck_processing_time, receiver_num, receiver_truck_processing_time, delivery_time_interval_interval):
         # Inputs for Generator
 
         # number of warehouse: int
@@ -21,6 +21,8 @@ class TestCaseGenerator:
 
         self.receiver_num = receiver_num
         self.receiver_truck_processing_time = receiver_truck_processing_time
+
+        self.delivery_time_interval_interval = delivery_time_interval_interval
 
     def generate_random_coordinates(self):
         # Generate a random latitude between -90 and 90
@@ -62,12 +64,14 @@ class TestCaseGenerator:
         truck_capacity_list = []
         warehouse_inbound_processing_time = []
         warehouse_outbound_processing_time = []
+        warehouse_manager_id_list = []
 
         # receiver
         receiver_id_list = []
         receiver_location_id_list = []
         receiver_inbound_processing_time = []
         receiver_outbound_processing_time = []
+        receiver_manager_id_list = []
 
         # location
         LOCATION_ID = 1
@@ -151,11 +155,13 @@ class TestCaseGenerator:
 
             # spawn employee
             employee_id_list.append(EMPLOYEE_ID)
+            warehouse_manager_id_list.append(EMPLOYEE_ID)
             EMPLOYEE_ID += 1
             employee_name_list.append(names.get_full_name())
             employee_position_list.append('warehouse_manager')
             employee_warehouse_id_list.append(WAREHOUSE_ID)
             employee_receiver_id_list.append(None)
+            
             
         # ----- [ Spawn Receiver and Friends ] -----
         for i in range(self.receiver_num):
@@ -175,6 +181,7 @@ class TestCaseGenerator:
 
             # spawn employee
             employee_id_list.append(EMPLOYEE_ID)
+            receiver_manager_id_list.append(EMPLOYEE_ID)
             EMPLOYEE_ID += 1
             employee_name_list.append(names.get_full_name())
             employee_position_list.append('receiver_manager')
@@ -207,7 +214,8 @@ class TestCaseGenerator:
             'warehouse_parklot_num': warehouse_parklot_num_list, 
             'truck_capacity':truck_capacity_list,
             'inbound_processing_time':warehouse_inbound_processing_time,
-            'outbound_processing_time':warehouse_outbound_processing_time
+            'outbound_processing_time':warehouse_outbound_processing_time,
+            'warehouse_manager_id': warehouse_manager_id_list
         }
 
 
@@ -223,7 +231,8 @@ class TestCaseGenerator:
             'receiver_id': receiver_id_list,
             'location_id': receiver_location_id_list,
             'inbound_processing_time': receiver_inbound_processing_time,
-            'outbound_processing_time': receiver_outbound_processing_time
+            'outbound_processing_time': receiver_outbound_processing_time,
+            'receiver_manager_id': receiver_manager_id_list
         }
 
         employee_data = {
@@ -247,20 +256,43 @@ class TestCaseGenerator:
         print(truck_data)
   
         # Create a DataFrame from the dictionary
-        warehouse_df = pd.DataFrame(warehouse_data)
-        receiver_df = pd.DataFrame(receiver_data)
-        truck_df = pd.DataFrame(truck_data)
-        employee_df = pd.DataFrame(employee_data)
-        route_df = pd.DataFrame(route_data)
+        self.warehouse_df = pd.DataFrame(warehouse_data)
+        self.receiver_df = pd.DataFrame(receiver_data)
+        self.truck_df = pd.DataFrame(truck_data)
+        self.employee_df = pd.DataFrame(employee_data)
+        self.route_df = pd.DataFrame(route_data)
 
         # Print the DataFrame
-        print(warehouse_df)
-        print(receiver_df)
-        print(truck_df)
-        print(employee_df)
-        print(route_df)
+        print(self.warehouse_df)
+        print(self.receiver_df)
+        print(self.truck_df)
+        print(self.employee_df)
+        print(self.route_df)
 
 
+    def generatingTestCasesCommonInput(self, n):
+        # random generate common inputs
+        common_input_list = []
+        for i in range(n):
+            random_warehouse_row = self.warehouse_df.sample(n=1)
+            print(random_warehouse_row)
+            random_warehouse_id = random_warehouse_row['warehouse_id'].values[0]
+            random_warehouse_manager_id = random_warehouse_row['warehouse_manager_id'].values[0]
+
+            random_receiver_row = self.receiver_df.sample(n=1)
+            print(random_receiver_row)
+            random_receiver_id = random_receiver_row['receiver_id'].values[0]
+            random_receiver_manager_id = random_receiver_row['receiver_manager_id'].values[0]
+
+            route_row = self.route_df.loc[(self.route_df['location_id_depart'] == random_warehouse_id) & (self.route_df['location_id_arrive'] == random_receiver_id)]
+            travel_time = route_row['travel_time'].values[0]
+            goods_list = ["apple", "banana", "grape"]
+
+
+            common_input_list.append({'random_warehouse_id':random_warehouse_id, 'random_warehouse_manager_id':random_warehouse_manager_id,'random_receiver_id':random_receiver_id, 'random_receiver_manager_id':random_receiver_manager_id, 'travel_time':travel_time,'goods_list':goods_list})
+        
+        return common_input_list
+    
     def generatingTestCases(self):
 
         # ---- [ create WarehouseShippingRequest ] ----
@@ -468,7 +500,18 @@ class TestCaseGenerator:
         # t81: (NO) all combinations of different queuing priority; SUM(m=0, n-1)[(nCm)(n-m)r] where n = no. of truck, r = no. of receiver
 
         
+        # query out: warehouse_id | warehouse_manager_id | receiver_manager_id | receiver_id | travel_time
+        # defined: goods_list 
+        # query + define: truck_order | delivery_time_interval (processing time)
 
+        common_input_list = self.generatingTestCasesCommonInput(1)
+        print(common_input_list[0])
+
+
+        logical_test_case_data = {
+            't1': [3, 2, 1, 0], 
+            't2': ['a', 'b', 'c', 'd']}
+        #pd.DataFrame.from_dict(data, orient='index')      
         pass
 
 warehouse_num =  5
@@ -477,9 +520,13 @@ truck_num_range = [3,20]
 warehouse_truck_processing_time = [5, 10]
 receiver_num = 3
 receiver_truck_processing_time = [3, 6]
+delivery_time_interval_interval = 3
 
-tcg = TestCaseGenerator(warehouse_num, warehouse_parking_range, truck_num_range, warehouse_truck_processing_time, receiver_num, receiver_truck_processing_time)
+
+
+tcg = TestCaseGenerator(warehouse_num, warehouse_parking_range, truck_num_range, warehouse_truck_processing_time, receiver_num, receiver_truck_processing_time, delivery_time_interval_interval)
 tcg.generatingDatabase() 
+tcg.generatingTestCases()
  
 
         
