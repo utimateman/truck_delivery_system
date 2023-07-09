@@ -1,6 +1,8 @@
 import random
 import names
 import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
 
 class TestCaseGenerator:
     def __init__(self, warehouse_num, warehouse_parking_range, truck_num_range, warehouse_truck_processing_time, receiver_num, receiver_truck_processing_time, delivery_time_interval_interval):
@@ -22,7 +24,7 @@ class TestCaseGenerator:
         self.receiver_num = receiver_num
         self.receiver_truck_processing_time = receiver_truck_processing_time
 
-        self.delivery_time_interval_interval = delivery_time_interval_interval
+        self.delivery_time_interval_interval = delivery_time_interval_interval * 60 # hours to minutes
 
     def generate_random_coordinates(self):
         # Generate a random latitude between -90 and 90
@@ -174,7 +176,7 @@ class TestCaseGenerator:
             # spawn location
             receiver_location_id_list.append(LOCATION_ID)
             LOCATION_ID += 1
-            location_id_list.append(RECEIVER_ID)
+            location_id_list.append(LOCATION_ID)
             lat, lng = self.generate_random_coordinates()
             lat_list.append(lat)
             lng_list.append(lng)
@@ -251,6 +253,13 @@ class TestCaseGenerator:
             'checkpoints': None
         }
 
+        location_data = {
+            'location_id':location_id_list,
+            'location_lat':lat_list,
+            'location_lng':lng_list
+        }
+
+
         print(warehouse_data)
         print(receiver_data)
         print(truck_data)
@@ -261,6 +270,7 @@ class TestCaseGenerator:
         self.truck_df = pd.DataFrame(truck_data)
         self.employee_df = pd.DataFrame(employee_data)
         self.route_df = pd.DataFrame(route_data)
+        self.location_df = pd.DataFrame(location_data)
 
         # Print the DataFrame
         print(self.warehouse_df)
@@ -268,7 +278,9 @@ class TestCaseGenerator:
         print(self.truck_df)
         print(self.employee_df)
         print(self.route_df)
+        print(self.location_df)
 
+    
 
     def generatingTestCasesCommonInput(self, n):
         # random generate common inputs
@@ -288,11 +300,145 @@ class TestCaseGenerator:
             travel_time = route_row['travel_time'].values[0]
             goods_list = ["apple", "banana", "grape"]
 
-
             common_input_list.append({'random_warehouse_id':random_warehouse_id, 'random_warehouse_manager_id':random_warehouse_manager_id,'random_receiver_id':random_receiver_id, 'random_receiver_manager_id':random_receiver_manager_id, 'travel_time':travel_time,'goods_list':goods_list})
         
         return common_input_list
     
+    def generatingTestCasesTruckInput(self, case, warehouse_id):
+        if case == 'NORMAL':
+            print("[+] - generatingTestCasesTruckInput")
+            truck_of_selected_warehouse_df = self.truck_df.loc[self.truck_df['truck_warehouse_location'] == warehouse_id]
+            print(truck_of_selected_warehouse_df)
+
+            truck_count = len(truck_of_selected_warehouse_df)
+            truck_sample_size = random.randint(1, truck_count)
+
+            print("truck count:", truck_count,"|", "truck sample size:", truck_sample_size)
+            sample_truck_of_selected_warehouse_df = truck_of_selected_warehouse_df.sample(n=truck_sample_size)
+            print(sample_truck_of_selected_warehouse_df)
+
+            # Group the DataFrame by truck_type and truck_parking_location, and calculate count
+            grouped_sample_truck_df = sample_truck_of_selected_warehouse_df.groupby(['truck_type', 'truck_parking_location']).size().reset_index(name='truck_number')
+
+            # Convert the grouped DataFrame to a list of dictionaries
+            result = grouped_sample_truck_df.to_dict(orient='records')
+            print(result)
+
+            return result, truck_sample_size
+        
+    def generatingTestCasesTimeInput(self, case, warehouse_id, receiver_id, truck_num):
+
+        if case == 'NORMAL':
+            # more than current time 1 day + no conflict of truck can't process on time for at least this order
+
+            print("[+] - generatingTestCasesTimeInput")
+
+            current_timestamp = datetime.now()
+            delivery_timestamp_lowerbound = current_timestamp + timedelta(days=1) + timedelta(minutes=random.randint(1, self.delivery_time_interval_interval))
+            formatted_delivery_timestamp_lowerbound = delivery_timestamp_lowerbound.strftime('%Y-%m-%d %H:%M:%S')
+
+            warehouse_row = self.warehouse_df.loc[(self.warehouse_df['warehouse_id'] == warehouse_id)]
+            warehouse_outbound_processing_time = warehouse_row['outbound_processing_time'].values[0]
+
+            receiver_row = self.receiver_df.loc[(self.receiver_df['receiver_id'] == receiver_id)]
+            receiver_inbound_processing_time = receiver_row['inbound_processing_time'].values[0]
+
+            random_time_interval = random.randint(1, self.delivery_time_interval_interval) 
+            delivery_interval =  random_time_interval +  (truck_num * (warehouse_outbound_processing_time + receiver_inbound_processing_time))
+            
+            delivery_interval = int(delivery_interval)
+            delivery_timestamp_upperbound = delivery_timestamp_lowerbound + timedelta(minutes=delivery_interval)
+            formatted_delivery_timestamp_upperbound = delivery_timestamp_upperbound.strftime('%Y-%m-%d %H:%M:%S')
+
+            print("warehouse_outbound_processing_time:", warehouse_outbound_processing_time, "| receiver_inbound_processing_time:",receiver_inbound_processing_time,
+                  "| truck_num:", truck_num, "| time interval:", random_time_interval)
+            print("delivery_interval:", delivery_interval)
+        
+
+            random_delivery_time_interval = [formatted_delivery_timestamp_lowerbound, formatted_delivery_timestamp_upperbound]
+            print('random_delivery_time_interval:', random_delivery_time_interval)
+
+            return random_delivery_time_interval
+
+
+    def subtract_minutes_from_timestamp(self, timestamp, minutes):
+        dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+        new_dt = dt - timedelta(minutes=int(minutes))
+        new_timestamp = new_dt.strftime("%Y-%m-%d %H:%M:%S")
+        return new_timestamp
+    
+    def generatingOutputDepartureTime(self, delivery_time_interval, warehouse_id, receiver_id, travel_time, truck_count):
+        warehouse_row = self.warehouse_df.loc[(self.warehouse_df['warehouse_id'] == warehouse_id)]
+        warehouse_outbound_processing_time = warehouse_row['outbound_processing_time'].values[0]
+
+        receiver_row = self.receiver_df.loc[(self.receiver_df['receiver_id'] == receiver_id)]
+        receiver_inbound_processing_time = receiver_row['inbound_processing_time'].values[0]
+
+        depature_time_upper_bound = self.subtract_minutes_from_timestamp(delivery_time_interval[1], ((warehouse_outbound_processing_time + receiver_inbound_processing_time) * truck_count + travel_time))
+        depature_time_lower_bound = self.subtract_minutes_from_timestamp(delivery_time_interval[0], (travel_time + (warehouse_outbound_processing_time * truck_count)))
+
+        departure_time_interval = [depature_time_lower_bound, depature_time_upper_bound]
+
+        print('delivery_time_interval:', delivery_time_interval, '| travel_time:', travel_time)
+        print('truck out wh:', warehouse_outbound_processing_time, '| truck in rc:', receiver_inbound_processing_time, '| truck count:', truck_count)
+        print('departure_time_interval:', departure_time_interval)
+
+        return departure_time_interval
+    
+
+    def generatingOutput(self, input_list):
+        
+        # ---- [ outputs summary ] ----
+        # List of [
+            # truck_id | truck_queue | truck_type | truck_warehouse_location | truck_parking_location | driver_id | warehouse_id 
+            # receiver_id | receiver_location | receiver_lat | receiver_lng 
+            # truck_delivery_time_interval | route_id | truck_departure_time_interval 
+            # warehouse_approval_manager_id | receiver_approval_manager_id 
+        # ]
+
+        # ---- [ input I have ] ----
+        # [
+        #         [0] - common_input_list['random_warehouse_id'], [1] - common_input_list['random_warehouse_manager_id'], 
+        #         [2] - common_input_list['random_receiver_id'], [3] - common_input_list['random_receiver_manager_id'],
+        #         [4] - common_input_list['travel_time'], [5] - common_input_list['goods_list'], 
+        #         [6] - random_truck_input, [7] - random_delivery_time_interval,
+        # ]
+
+        output_selected_truck = self.truck_df.loc[self.truck_df['truck_warehouse_location'] == input_list[0]]
+        output_queued_truck = output_selected_truck.sort_values(by=['truck_parking_location', 'truck_priority', 'truck_id'], ascending=True)
+
+        # Duplicate column change name
+        output_queued_truck['drive_id'] = output_queued_truck['truck_id']
+
+        # Create a new column with the same size as the number of rows
+        output_queued_truck['warehouse_id'] = input_list[0] * output_queued_truck.shape[0]
+        output_queued_truck['receiver_id'] = input_list[2] * output_queued_truck.shape[0]
+        
+        output_location_id = self.receiver_df.loc[self.receiver_df['receiver_id'] == input_list[2], 'location_id'].values[0]
+        output_queued_truck['receiver_location'] = [output_location_id] * output_queued_truck.shape[0]
+        
+        output_receiver_lat = self.location_df.loc[self.location_df['location_id'] == output_location_id, 'location_lat'].values[0]
+        output_receiver_lng = self.location_df.loc[self.location_df['location_id'] == output_location_id, 'location_lng'].values[0]
+        output_queued_truck['receiver_lat'] = [output_receiver_lat] * output_queued_truck.shape[0]
+        output_queued_truck['receiver_lng'] = [output_receiver_lng] * output_queued_truck.shape[0]
+
+
+        output_queued_truck['truck_delivery_time_interval'] = [input_list[7]] * len(output_queued_truck)
+
+        
+        output_route_id = self.route_df.loc[(self.route_df['location_id_depart'] == input_list[0]) & (self.route_df['location_id_arrive'] == input_list[2]), 'route_id'].values[0]
+        output_queued_truck['route_id'] = output_route_id * output_queued_truck.shape[0]
+
+        departure_time_interval = self.generatingOutputDepartureTime(input_list[7], input_list[0], input_list[2], input_list[4], len(output_queued_truck))
+        output_queued_truck['truck_departure_time_interval'] = [departure_time_interval] * len(output_queued_truck)
+
+        output_queued_truck['warehouse_approval_manager_id'] = [input_list[1]] * output_queued_truck.shape[0]
+        output_queued_truck['receiver_approval_manager_id'] = [input_list[3]] * output_queued_truck.shape[0]
+
+        print(output_queued_truck)
+        
+        return output_queued_truck
+
     def generatingTestCases(self):
 
         # ---- [ create WarehouseShippingRequest ] ----
@@ -338,6 +484,7 @@ class TestCaseGenerator:
             # *** truck_queue - matches the sequence
             # *** truck_type - in total is correct e.g., 3 Box Truck, 2 Pickups
             # truck_warehouse_location - in total is correct 
+            # truck_parking_location - is correct
             # driver_id - is all positive int
             # warehouse_id - matches input
             # receiver_id - matches input
@@ -357,9 +504,10 @@ class TestCaseGenerator:
         # c4: different types of truck has different priority for QUEUING SYSTEM
         # c5: different departure time has different priority for QUEUING SYSTEM
         # c6: departure time for QUEUING SYSTEM is defining as departure time (lower bound) + (outbound_truck_processing_time * number of truck)
-        # c7: priority of queuing factors is described as follows: departure time > location > types; 
+        # c7: priority of queuing factors is described as follows: departure time > location > types > transaction sequence (timestamp) > truck_ID; 
         # c8: if departure time same, then departure time (upper bound)
-        # c9: if departure time (upper bound) same, then transaction sequence (timestamp)
+        # c9: is NOT checking driver's management e.g., same driver assign to 2 truck at the same time
+  
 
         # ------- [ test cases ] -------
 
@@ -413,10 +561,10 @@ class TestCaseGenerator:
         # t10: multiple intersect overlapped case - truck NOT exceed -> PASS
         
         # Truck Queuing
-        # t11: test priority (2 receiver depart same time) - order by departure(upper bound), same departure time, same location, same types -> PASS
-        # t12: test priority (5 receiver depart same time) - order by departure(upper bound) timestamp, same departure time, same location, same types -> PASS
-        # t13: test priority (2 receiver depart same time) - order by departure(same) - order by transaction, same departure time, same location, same types -> PASS
-        # t14: test priority (5 receiver depart same time) - order by departure(same) - order by transaction timestamp, same departure time, same location, same types -> PASS
+        # t11: test departure upper bound priority (2 receiver depart same time) - order by departure(upper bound), same departure time, same location, same types -> PASS
+        # t12: test departure upper bound priority (5 receiver depart same time) - order by departure(upper bound) timestamp, same departure time, same location, same types -> PASS
+        # t13: test transaction sequence priority (2 receiver depart same time) - order by departure(same) - order by transaction sequence, same departure time, same location, same types -> PASS
+        # t14: test transaction sequence priority (5 receiver depart same time) - order by departure(same) - order by transaction sequence timestamp, same departure time, same location, same types -> PASS
         
         # - different types
         # t15: test types priority (1 types) - order by departure(upper bound), same departure time, same location, different types -> PASS
@@ -485,12 +633,15 @@ class TestCaseGenerator:
         # t73: test departure time priority (4 receiver depart same time, 4 types) - different departure time, same location, same types - (A, B, C, D), (B, C, D, A), (C, D, A, B), (D, A, B, C) -> PASS
         # t74: test departure time priority (5 receiver depart same time, 3 types) - different departure time, same location, same types - (A, B, C), (A, B, C),  (A, B, C),  (A, B, C),  (A, B, C) -> PASS
 
+        # - miscellenous
+        # t75: test order 1 truck
+
         # - priority combination 
         # t75: test location and types priority - same departure time, different location, different types - A:(A,B), B(A,B,C) -> PASS
         # t76: test departure time and types priority - different departure time, different location, different types - A:(A,B), B(A,B,C) -> PASS
         # t77: test departure time and types location - different departure time, different location, same types - A:(A,B), B(A,B,C) -> PASS
         # t78: probably normal case... all different - different departure time, different location, different types -> PASS
-        
+        # txx: [ DONT FORGET ] truck exceed capacity
 
         # ---------------------------------------------
         # random (smoking?) test
@@ -499,19 +650,49 @@ class TestCaseGenerator:
         # t80: (Maybe Subset) all combinations of warehouse-receiver
         # t81: (NO) all combinations of different queuing priority; SUM(m=0, n-1)[(nCm)(n-m)r] where n = no. of truck, r = no. of receiver
 
-        
+
+
+
+        # ---- [ inputs summary ] ----
         # query out: warehouse_id | warehouse_manager_id | receiver_manager_id | receiver_id | travel_time
         # defined: goods_list 
-        # query + define: truck_order | delivery_time_interval (processing time)
+        # query + define: truck_order | delivery_time_interval
+
+        # ---- [ outputs summary ] ----
+        # List of [
+            # truck_id | truck_queue | truck_type | truck_warehouse_location | truck_parking_location | driver_id | warehouse_id 
+            # receiver_id | receiver_location | receiver_lat | receiver_lng 
+            # truck_delivery_time_interval | route_id | truck_departure_time_interval 
+            # warehouse_approval_manager_id | receiver_approval_manager_id 
+        # ]
+
+        # t1: base case - happy path, everything correct -> PASS
 
         common_input_list = self.generatingTestCasesCommonInput(1)
-        print(common_input_list[0])
+        common_input_list = common_input_list[0]
 
+        random_truck_input, total_truck_count = self.generatingTestCasesTruckInput(case='NORMAL', warehouse_id=common_input_list['random_warehouse_id'])
+        random_delivery_time_interval = self.generatingTestCasesTimeInput(case='NORMAL', warehouse_id=common_input_list['random_warehouse_id'], receiver_id=common_input_list['random_receiver_id'], truck_num=total_truck_count)
 
-        logical_test_case_data = {
-            't1': [3, 2, 1, 0], 
-            't2': ['a', 'b', 'c', 'd']}
-        #pd.DataFrame.from_dict(data, orient='index')      
+        print(common_input_list)
+
+        test_case_input = [
+                common_input_list['random_warehouse_id'], common_input_list['random_warehouse_manager_id'], 
+                common_input_list['random_receiver_id'], common_input_list['random_receiver_manager_id'],
+                common_input_list['travel_time'], common_input_list['goods_list'], random_truck_input, random_delivery_time_interval,
+        ]
+
+        self.generatingOutput(test_case_input)
+        # logical_test_case_data = {
+        #     't1': [
+        #         common_input_list['random_warehouse_id'], common_input_list['random_warehouse_manager_id'], 
+        #         common_input_list['random_receiver_id'], common_input_list['random_receiver_manager_id'],
+        #         common_input_list['travel_time'], common_input_list['goods_list'], random_truck_input, random_delivery_time_interval,
+
+        #         ],
+
+        #     }
+        # pd.DataFrame.from_dict(logical_test_case_data, orient='index')      
         pass
 
 warehouse_num =  5
