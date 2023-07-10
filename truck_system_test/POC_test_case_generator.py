@@ -932,7 +932,8 @@ class TestCaseGenerator:
 
         # [ t4: exact overlapped case ] - truck NOT exceed -> PASS   # tricky!
         t4_test_case = self.generatingLogicalTestCase4()
-   
+
+        
 
         # # [ Combine and Export All Test Cases ]
         # all_test_cases = [
