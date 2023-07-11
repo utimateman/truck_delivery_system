@@ -772,12 +772,13 @@ class TestCaseGenerator:
         test_case_output = self.fixTruckNDriverID(test_case_output)
         print("AFTER:", test_case_output)
         test_case_output = self.generatingTruckQueuingOutput(test_case_output)
+        test_case_output = json.dumps({"output":test_case_output})
 
         t3_test_case = []
         t3_test_case.append(['t3'] + ['[ t3: exact overlapped case ] - truck exceed -> FAIL: second request exceed'] + test_case_input + [test_case_output])
-        t3_test_case.append(['t3'] + ['[ t3: exact overlapped case ] - truck exceed -> FAIL: second request exceed'] + test_case_input + [{"error_message","truck processing time won't make it"}])
+        t3_test_case.append(['t3'] + ['[ t3: exact overlapped case ] - truck exceed -> FAIL: second request exceed'] + test_case_input + [json.dumps({"output":"error_message - truck processing time won't make it"})])
 
-        self.debuggerFunctionTruckDelivery('[ t3: exact overlapped case ] - truck exceed -> FAIL: second request exceed',test_case_input, test_case_output_1, truck_id_list)
+        # self.debuggerFunctionTruckDelivery('[ t3: exact overlapped case ] - truck exceed -> FAIL: second request exceed',test_case_input, test_case_output_1, truck_id_list)
 
         return t3_test_case
 
@@ -808,12 +809,13 @@ class TestCaseGenerator:
         test_case_output = self.fixTruckNDriverID(test_case_output)
         print("AFTER:", test_case_output)
         test_case_output = self.generatingTruckQueuingOutput(test_case_output)
+        test_case_output = json.dumps({"output":test_case_output})
 
         t4_test_case = []
         t4_test_case.append(['t4'] + ['[ t4: exact overlapped case ] - truck NOT exceed -> PASS'] + test_case_input + [])
         t4_test_case.append(['t4'] + ['[ t4: exact overlapped case ] - truck NOT exceed -> PASS'] + test_case_input + [test_case_output])
 
-        self.debuggerFunctionTruckDelivery('[ t4: exact overlapped case ] - truck NOT exceed -> PASS',test_case_input, test_case_output_1, truck_id_list)
+        # self.debuggerFunctionTruckDelivery('[ t4: exact overlapped case ] - truck NOT exceed -> PASS',test_case_input, test_case_output_1, truck_id_list)
 
         return t4_test_case
     
@@ -1398,9 +1400,9 @@ class TestCaseGenerator:
         # [ Combine and Export All Test Cases ]
         all_test_cases = [
             t1_test_case,
-            t2_test_case
-            # t3_test_case, 
-            # t4_test_case,
+            t2_test_case,
+            t3_test_case, 
+            t4_test_case,
             # t5_test_case,
             # t6_test_case,
             # t7_test_case,

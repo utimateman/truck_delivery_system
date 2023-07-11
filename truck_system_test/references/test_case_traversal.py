@@ -1,5 +1,12 @@
-import pandas as pd
+import sys
 import json
+import math
+import unittest
+import pandas as pd
+from datetime import datetime, timedelta
+
+
+
 
 test_cases_df = pd.read_csv('/Users/krai/truck_delivery_system/truck_system_test/example_test_cases/testcase1.csv')
 print(test_cases_df)
@@ -29,10 +36,6 @@ if len(test_cases_df) > 1:
 
     test_cases.update({prev_case_id:{"input":input_list, "output":output_list}})
 
-        
-
-print(test_cases)
-
 # Test Cases Traversal
 test_case_id_list = test_cases_df['test_case_id'].unique().tolist()
 
@@ -42,6 +45,9 @@ for test_case_id in test_case_id_list:
         print(input_value)
 
     print("OUTPUT:\n")
+    clean_output_value = []
     for output_value in test_cases[test_case_id]['output']:
-        output_value = json.loads(output_value[0])
-        print(output_value)
+        if type(output_value[0]) is not float or not math.isnan(output_value[0]):
+            output_value = json.loads(output_value[0])
+            print(output_value)
+            clean_output_value.append(output_value)
