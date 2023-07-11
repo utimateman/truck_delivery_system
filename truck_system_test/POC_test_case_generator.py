@@ -845,6 +845,8 @@ class TestCaseGenerator:
         test_case_output = self.fixTruckNDriverID(test_case_output)
         print("AFTER:", test_case_output)
         test_case_output = self.generatingTruckQueuingOutput(test_case_output)
+        test_case_output = json.dumps({"output":test_case_output})
+
         t5_test_case.append(['t5'] + ['[ t5: intersect overlapped case ] - truck exceed -> FAIL'] + test_case_input + [test_case_output])
         
 
@@ -852,9 +854,9 @@ class TestCaseGenerator:
         overlapped_deliver_time_interval_upperbound = self.subtract_minutes_from_timestamp(random_delivery_time_interval[1],1)
         test_case_input[7] = [overlapped_deliver_time_interval_lowerbound, overlapped_deliver_time_interval_upperbound]
         test_case_output_2 = self.generatingOutput(test_case_input, truck_id_list, case='NORMAL')
-        t5_test_case.append(['t5'] + ['[ t5: intersect overlapped case ] - truck exceed -> FAIL'] + test_case_input + [{"error_message","truck processing time won't make it"}])
+        t5_test_case.append(['t5'] + ['[ t5: intersect overlapped case ] - truck exceed -> FAIL'] + test_case_input + [json.dumps({"output": "error_message - truck processing time won't make it"})])
 
-        self.debuggerFunctionTruckDelivery('[ t5: intersect overlapped case ] - truck exceed -> FAIL',test_case_input, test_case_output_1, truck_id_list)
+        # self.debuggerFunctionTruckDelivery('[ t5: intersect overlapped case ] - truck exceed -> FAIL',test_case_input, test_case_output_1, truck_id_list)
 
         return t5_test_case
         
@@ -892,10 +894,11 @@ class TestCaseGenerator:
         test_case_output = self.fixTruckNDriverID(test_case_output)
         print("AFTER:", test_case_output)
         test_case_output = self.generatingTruckQueuingOutput(test_case_output)
+        test_case_output = json.dumps({"output":test_case_output})
 
         t6_test_case.append(['t6'] + ['[ t6: intersect overlapped case ] - truck NOT exceed -> PASS'] + test_case_input + [test_case_output])
 
-        self.debuggerFunctionTruckDelivery('[ t6: intersect overlapped case ] - truck NOT exceed -> PASS',test_case_input, test_case_output_1, truck_id_list)
+        # self.debuggerFunctionTruckDelivery('[ t6: intersect overlapped case ] - truck NOT exceed -> PASS',test_case_input, test_case_output_1, truck_id_list)
 
         return t6_test_case
     
@@ -925,6 +928,7 @@ class TestCaseGenerator:
         test_case_output = self.fixTruckNDriverID(test_case_output)
         print("AFTER:", test_case_output)
         test_case_output = self.generatingTruckQueuingOutput(test_case_output)
+        test_case_output = json.dumps({"output":test_case_output})
         t7_test_case.append(['t7'] + ['[ t7: subset overlapped case ] - truck exceed -> FAIL'] + test_case_input + [test_case_output])
         
 
@@ -934,9 +938,9 @@ class TestCaseGenerator:
         test_case_output_2 = self.generatingOutput(test_case_input, truck_id_list, case='NORMAL')
         
 
-        t7_test_case.append(['t7'] + ['[ t7: subset overlapped case ] - truck exceed -> FAIL'] + test_case_input + [{"error_message","truck processing time won't make it"}])
+        t7_test_case.append(['t7'] + ['[ t7: subset overlapped case ] - truck exceed -> FAIL'] + test_case_input + [json.dumps({"output":"error_message: truck processing time won't make it"})])
 
-        self.debuggerFunctionTruckDelivery('[ t7: subset overlapped case ] - truck exceed -> FAIL',test_case_input, test_case_output_1, truck_id_list)
+        # self.debuggerFunctionTruckDelivery('[ t7: subset overlapped case ] - truck exceed -> FAIL',test_case_input, test_case_output_1, truck_id_list)
 
         return t7_test_case
     
@@ -975,10 +979,11 @@ class TestCaseGenerator:
         test_case_output = self.fixTruckNDriverID(test_case_output)
         print("AFTER:", test_case_output)
         test_case_output = self.generatingTruckQueuingOutput(test_case_output)
+        test_case_output = json.dumps({"output":test_case_output})
 
         t8_test_case.append(['t8'] + ['[ t8: subset overlapped case ] - truck NOT exceed -> PASS'] + test_case_input + [test_case_output])
 
-        self.debuggerFunctionTruckDelivery('[ t8: subset overlapped case ] - truck NOT exceed -> PASS',test_case_input, test_case_output_1, truck_id_list)
+        # self.debuggerFunctionTruckDelivery('[ t8: subset overlapped case ] - truck NOT exceed -> PASS',test_case_input, test_case_output_1, truck_id_list)
 
         return t8_test_case
     
@@ -1008,6 +1013,7 @@ class TestCaseGenerator:
         test_case_output = self.fixTruckNDriverID(test_case_output)
         print("AFTER:", test_case_output)
         test_case_output = self.generatingTruckQueuingOutput(test_case_output)
+        test_case_output = json.dumps({"output":test_case_output})
 
         t9_test_case.append(['t9'] + ['[ t9: multiple intersect overlapped case ] - truck exceed -> FAIL'] + test_case_input + [test_case_output])
 
@@ -1016,13 +1022,13 @@ class TestCaseGenerator:
         overlapped_deliver_time_interval_upperbound = self.subtract_minutes_from_timestamp(random_delivery_time_interval[1],1)
         test_case_input[7] = [overlapped_deliver_time_interval_lowerbound, overlapped_deliver_time_interval_upperbound]
         test_case_output_2 = self.generatingOutput(test_case_input, truck_id_list, case='NORMAL')
-        t9_test_case.append(['t9'] + ['[ t9: multiple intersect overlapped case ] - truck exceed -> FAIL'] + test_case_input + [{"error_message","truck processing time won't make it"}])
+        t9_test_case.append(['t9'] + ['[ t9: multiple intersect overlapped case ] - truck exceed -> FAIL'] + test_case_input + [json.dumps({"output":"error_message: truck processing time won't make it"})])
 
         overlapped_deliver_time_interval_lowerbound = self.addition_minutes_from_timestamp(random_delivery_time_interval[0],1)
         overlapped_deliver_time_interval_upperbound = self.addition_minutes_from_timestamp(random_delivery_time_interval[1],1)
         test_case_input[7] = [overlapped_deliver_time_interval_lowerbound, overlapped_deliver_time_interval_upperbound]
         test_case_output_2 = self.generatingOutput(test_case_input, truck_id_list, case='NORMAL')
-        t9_test_case.append(['t9'] + ['[ t9: multiple intersect overlapped case ] - truck exceed -> FAIL'] + test_case_input + [{"error_message","truck processing time won't make it"}])
+        t9_test_case.append(['t9'] + ['[ t9: multiple intersect overlapped case ] - truck exceed -> FAIL'] + test_case_input + [json.dumps({"output":"error_message: truck processing time won't make it"})])
 
         self.debuggerFunctionTruckDelivery('[ t9: multiple intersect overlapped case ] - truck exceed -> FAIL',test_case_input, test_case_output_1, truck_id_list)
 
@@ -1077,6 +1083,7 @@ class TestCaseGenerator:
         test_case_output = self.fixTruckNDriverID(test_case_output)
         print("AFTER:", test_case_output)
         test_case_output = self.generatingTruckQueuingOutput(test_case_output)
+        test_case_output = json.dumps({"output":test_case_output})
 
         # self.debuggerOutput(test_case_output)
         
@@ -1127,6 +1134,7 @@ class TestCaseGenerator:
         print("AFTER:", test_case_output)
         
         test_case_output = self.generatingTruckQueuingOutput(test_case_output)
+        test_case_output = json.dumps({"output":test_case_output})
 
         t11_test_case = []
         t11_test_case.append(['t11','[ t11: base case ] - happy path, everything correct -> PASS'] + test_case_input + [test_case_output])
@@ -1403,13 +1411,13 @@ class TestCaseGenerator:
             t2_test_case,
             t3_test_case, 
             t4_test_case,
-            # t5_test_case,
-            # t6_test_case,
-            # t7_test_case,
-            # t8_test_case,
-            # t9_test_case,
-            # t10_test_case,
-            # t11_test_case
+            t5_test_case,
+            t6_test_case,
+            t7_test_case,
+            t8_test_case,
+            t9_test_case,
+            t10_test_case,
+            t11_test_case
 
         ]
 

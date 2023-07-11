@@ -23,6 +23,7 @@ class POCAutomateTestFileGenerator(unittest.TestCase):
         if len(test_cases_df) > 1:
             input_list = []
             output_list = []
+            description_list = []
             test_cases = {}
             fieldnames = ['test_case_id', 'test_case_description', 'warehouse_id', 'warehouse_manager_id', 'receiver_id','receiver_manager_id','travel_time','goods_list','truck_order','delivery_time_interval','output']
 
@@ -39,14 +40,22 @@ class POCAutomateTestFileGenerator(unittest.TestCase):
                     # break
 
                 print(row[['test_case_id','warehouse_id', 'warehouse_manager_id', 'receiver_id','receiver_manager_id','travel_time','goods_list','truck_order','delivery_time_interval']])
+                # [ REFRACTOR ] - [[]] to []
                 input_list.append(row[['warehouse_id', 'warehouse_manager_id', 'receiver_id','receiver_manager_id','travel_time','goods_list','truck_order','delivery_time_interval']].to_list())
                 output_list.append(row[['output']].tolist())
+                description_list.append(row[['test_case_description']].tolist())
 
             test_cases.update({prev_case_id:{"input":input_list, "output":output_list}})
 
-        # print(test_cases)
+        
         self.test_cases = test_cases
         self.test_case_id_list = test_cases_df['test_case_id'].unique().tolist()
+        self.test_cases_description = {row['test_case_id']: row['test_case_description'] for _, row in test_cases_df.iterrows()}
+
+      
+
+
+   
 
     def traversingTestCases(self):
         test_case_string = '''
@@ -102,13 +111,14 @@ class MyPOCTest(unittest.TestCase):
             self.clean_test_cases_dict.update({str(test_case_id)+"_input":clean_input_value, str(test_case_id)+"_output":clean_output_value})
             
         '''
+        
         # Test Cases Traversal
         for test_case_id in self.test_case_id_list:
-            print("INPUT:\n")
+            print(test_case_id, "INPUT:\n")
             for input_value in self.test_cases[test_case_id]['input']:
                 print(input_value)
 
-            print("OUTPUT:\n")
+            print(test_case_id, "OUTPUT:\n")
             clean_output_value = []
             for output_value in self.test_cases[test_case_id]['output']:
                 # print("HAEK HERE")
@@ -118,17 +128,26 @@ class MyPOCTest(unittest.TestCase):
                     print(output_value)
                     clean_output_value.append(output_value)
                 # print("OR HERE")
+            
+            
+
+
+           
+
              
 
             if len(self.test_cases[test_case_id]['input']) == len(clean_output_value) and len(clean_output_value) > 1:
                 # generate
                 test_case_string += '''
-    def test_''' + str(test_case_id) + '''(self):'''
+    def test_''' + str(test_case_id) + '''(self):''' + '''
+        #''' + self.test_cases_description[test_case_id] + '''
+        # [ Mutiple Request Case ] - sucess, error, error
+        '''
                 for i in range(len(self.test_cases[test_case_id]['input'])):
                     test_case_string += '''
-        # [ Mutiple Request Case ] - sucess, error, error
         ''' + str(test_case_id) + '''_input = self.clean_test_cases_dict["''' + str(test_case_id) + '''_input"]
         ''' + str(test_case_id) + '''_output = self.clean_test_cases_dict["''' + str(test_case_id) + '''_output"]
+        
         # INPUT: tx_input[n] | OUTPUT: tx_output[n]
         self.assertEqual(''' + str(test_case_id) + '''_output, ''' + str(test_case_id) + '''_output)
                     '''
@@ -136,12 +155,14 @@ class MyPOCTest(unittest.TestCase):
             elif len(self.test_cases[test_case_id]['input']) == 1:
                 # self.assertEqual("Hello", "Hello")
                 test_case_string += '''
-    def test_''' + str(test_case_id) + '''(self):
-    '''
+    def test_''' + str(test_case_id) + '''(self):'''
                 test_case_string += '''
+        # ''' + self.test_cases_description[test_case_id] + '''
         # [ Single Request Case ] - Single Output
+        
         ''' + str(test_case_id) + '''_input = self.clean_test_cases_dict["''' + str(test_case_id) + '''_input"]
         ''' + str(test_case_id) + '''_output = self.clean_test_cases_dict["''' + str(test_case_id) + '''_output"]
+        
         # INPUT: tx_input[0] | OUTPUT: tx_output[0]
         self.assertEqual(''' + str(test_case_id) + '''_output, ''' + str(test_case_id) + '''_output)
                     '''
@@ -149,12 +170,14 @@ class MyPOCTest(unittest.TestCase):
             elif len(self.test_cases[test_case_id]['input']) > len(clean_output_value):
                 # self.assertEqual(self.test_cases[test_case_id]['input'], output_value)
                 test_case_string += '''
-    def test_''' + str(test_case_id) + '''(self):
-    '''
+    def test_''' + str(test_case_id) + '''(self):'''
                 test_case_string += '''
+        # ''' + self.test_cases_description[test_case_id] + '''     
         # [ Multiple Request Case ] - Single Output
+        
         ''' + str(test_case_id) + '''_input = self.clean_test_cases_dict["''' + str(test_case_id) + '''_input"]
         ''' + str(test_case_id) + '''_output = self.clean_test_cases_dict["''' + str(test_case_id) + '''_output"]
+        
         # INPUT: tx_input[0:n] | OUTPUT: tx_output[0]
         self.assertEqual(''' + str(test_case_id) + '''_output, ''' + str(test_case_id) + '''_output)
                     '''
